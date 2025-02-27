@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reports</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{ url_for('upload') }}">Upload</a>
+        <a href="{{ url_for('classify') }}">Classify</a>
+        <a href="{{ url_for('reports') }}">Reports</a>
+    </div>
+    <div class="content">
+        <h2>Image Classification Reports</h2>
+        <!-- Classification Status Chart -->
+        <canvas id="classificationChart"></canvas>
+        <!-- Number of Persons Detected -->
+        <canvas id="personsChart"></canvas>
+        <!-- Missing Hardhat Chart -->
+        <canvas id="hardhatChart"></canvas>
+        <!-- Missing PPE Chart -->
+        <canvas id="ppeChart"></canvas>
+        <!-- Safety Violations Chart -->
+        <canvas id="violationsChart"></canvas>
+    </div>
+
+    <script>
+        // Fetch data dynamically from Flask
+        fetch('/report-data')
+            .then(response => response.json())
+            .then(data => {
+                // Classification Status Chart
+                new Chart(document.getElementById('classificationChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Classified', 'Unclassified'],
+                        datasets: [{
+                            label: 'Classification Status',
+                            data: [data.classified, data.unclassified],
+                            backgroundColor: ['#4BC0C0', '#FF6384']
+                        }]
+                    }
+                });
+
+                // Number of Persons Detected
+                new Chart(document.getElementById('personsChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.image_names,
+                        datasets: [{
+                            label: 'Number of Persons',
+                            data: data.person_counts,
+                            backgroundColor: '#36A2EB'
+                        }]
+                    }
+                });
+
+                // Missing Hardhat Chart
+                new Chart(document.getElementById('hardhatChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Missing Hardhat', 'Hardhat Present'],
+                        datasets: [{
+                            label: 'Hardhat Status',
+                            data: [data.missing_hardhat, data.hardhat_present],
+                            backgroundColor: ['#FF9F40', '#4BC0C0']
+                        }]
+                    }
+                });
+
+                // Missing PPE Chart
+                new Chart(document.getElementById('ppeChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Missing PPE', 'PPE Present'],
+                        datasets: [{
+                            label: 'PPE Status',
+                            data: [data.missing_ppe, data.ppe_present],
+                            backgroundColor: ['#FF6384', '#36A2EB']
+                        }]
+                    }
+                });
+
+                // Safety Violations Chart
+                new Chart(document.getElementById('violationsChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.image_names,
+                        datasets: [
+                            {
+                                label: 'Missing Hardhat',
+                                data: data.hardhat_violations,
+                                backgroundColor: '#FF9F40'
+                            },
+                            {
+                                label: 'Missing PPE',
+                                data: data.ppe_violations,
+                                backgroundColor: '#FF6384'
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
